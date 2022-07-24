@@ -1,10 +1,10 @@
 import requests
 import os
+import re
 from tqdm import tqdm
-import time
 from bs4 import BeautifulSoup as bs
 from urllib.parse import urljoin, urlparse
-from urllib.request import Request, urlopen
+from urllib.request import urlopen
 from google_drive_downloader import GoogleDriveDownloader as gdd
 
 # from urllib3.exceptions import InsecureRequestWarning
@@ -15,6 +15,8 @@ saqué esta de https://www.thepythoncode.com/article/download-web-page-images-py
 """
 
 # primero vemos que la URL sea válida
+
+
 def is_valid(url):
     """
     Chequea que la url sea válida.
@@ -108,58 +110,10 @@ def main(url, path):
         download(img, path)
 
 
+# descomentar lo siguiente para que funcione:
+
+
 # url = "https://stackoverflow.com/questions/16230850/httpsconnectionpool-max-retries-exceeded"
 # url = "https://mangaplus.shueisha.co.jp/viewer/1000331"
 # url = "https://w12.haikyuuu.com/manga/chapter-1-2/"
 # main(url, "hq")
-
-# url que tiene links de drive con los pdfs de los caps
-
-"""
-Función para descargar pdfs (o lo que sea) de una página donde hay links de drive
-"""
-
-
-def id_gdrive(url):
-    """
-    devuelve el id de uno o más links a archivos en drive en una página web
-    """
-
-    # hago esto porque a veces si no tira un error 403
-    hed = requests.utils.default_headers()
-    hed.update(
-        {
-            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0"
-        }
-    )
-
-    # llama a la url
-    req = requests.get(url, headers=hed)
-
-    # hace la sopa
-    soup = bs(req.content, "html")
-
-    # hace una lista con los links de la sopa
-    links = []
-    for link in soup.findAll("a"):
-        links.append(link.get("href"))
-
-    links = list(filter(None, links))  # elimina los None si los hay
-
-    # elije sólo los links que dicen "drive"
-    id = [link.split("/")[5] for link in links if "drive" in link]
-
-    # el id de drive es el quinto coso si tiene la forma
-    # https://drive.google.com/file/d/1djZBi0ZO5Aj9zP4U5kdugXxiHJKLcO8o/view
-
-    return id
-
-
-def download_pdf(url):
-    id = id_gdrive(url)
-    for ch, f_id in enumerate(id):
-        gdd.download_file_from_google_drive(file_id=f_id, dest_path=f"./ch{ch+1}.pdf")
-
-
-url = "https://www.popularanimehere.com/haikyuu-manga-online-read-download/"
-download_pdf(url)
