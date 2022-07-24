@@ -1,5 +1,6 @@
 import re
 from urllib.request import urlopen
+from PyPDF2 import PdfMerger
 
 """
 Busca en la wiki de hq donde empieza la lista de volúmenes y en cada uno los
@@ -38,38 +39,50 @@ def lista(pattern_vol, pattern_ch, html):
     return lst
 
 
-def main_info(url):
+def pdf_final(lst):
+    """
+    Genera un dict a partir de la lista que tenía antes y después usa la key como
+    titulo y los values como los ch que tiene que mergear
+    """
+    # primer creamos un dict a partir de la lista que tengo
+    d = dict()
+    for item in lst:
+        if isinstance(item, str):
+            current_key = item
+        if isinstance(item, int):
+            if current_key not in d:
+                d[current_key] = [item]
+            else:
+                d[current_key].append(item)
+
+    # ahora mergea los pdfs según lo que dé la lista
+    j = 1
+    for item in lst:
+        pdfs = []
+        if isinstance(item, str):
+            for i in d[item]:
+                pdfs.append(f"../../Documents/Haikyuu/ch{i}.pdf")
+            merger = PdfMerger()
+
+            for pdf in pdfs:
+                merger.append(pdf)
+
+            # key, value = d.items()
+            merger.write(f"../../Documents/Haikyuu/{item}_Vol{j}.pdf")
+            merger.close()
+            j = j + 1
+
+
+def main(url):
     page = urlopen(url)
     html = page.read().decode("utf-8")
 
     pattern_ch = "\<li\>Chapter"
     pattern_vol = '\(Volume\)" title="'
     lst = lista(pattern_vol, pattern_ch, html)
+    pdf_final(lst)
 
 
 # hq = "https://en.wikipedia.org/wiki/List_of_Haikyu!!_chapters"
 hq = "https://haikyuu.fandom.com/wiki/Haiky%C5%AB!!_Volumes"
-page = urlopen(hq)
-html = page.read().decode("utf-8")
-
-pattern_ch = "\<li\>Chapter"
-pattern_vol = '\(Volume\)" title="'
-
-# ahora mergea los pdfs según lo que dé la lista
-from PyPDF2 import PdfMerger
-
-[ch for ch in lst if type(ch) is str]
-
-for i in lst:
-    if type(i) is str:
-        title = i
-    if type(i) is int:
-        pdf_1 = [f"ch{i}.pdf", f"ch{i}.pdf", "file3.pdf", "file4.pdf"]
-
-        merger = PdfMerger()
-
-        for pdf in pdfs:
-            merger.append(pdf)
-
-        merger.write("result.pdf")
-        merger.close()
+main(hq)
