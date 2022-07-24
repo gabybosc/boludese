@@ -1,11 +1,14 @@
 import requests
 import os
 from tqdm import tqdm
+import time
 from bs4 import BeautifulSoup as bs
 from urllib.parse import urljoin, urlparse
 from urllib.request import Request, urlopen
 from google_drive_downloader import GoogleDriveDownloader as gdd
 
+# from urllib3.exceptions import InsecureRequestWarning
+# from urllib3 import disable_warnings
 
 """
 saqué esta de https://www.thepythoncode.com/article/download-web-page-images-python
@@ -36,6 +39,7 @@ def get_all_images(url):
     soup = bs(requests.get(url).content, "html.parser")
     urls = []
     for img in tqdm(soup.find_all("img"), "Extracting images"):
+
         img_url = img.attrs.get("src")
         if not img_url:
             # si img no tiene src, lo saltea
@@ -68,7 +72,7 @@ def download(url, pathname):
         os.makedirs(pathname)
 
     # download the body of response by chunk, not immediately (?)
-    response = requests.get(url, stream=True)
+    response = requests.get(url, stream=True, timeout=3)
 
     # tamaño total del archivo
     file_size = int(response.headers.get("Content-Length", 0))
@@ -99,40 +103,54 @@ def main(url, path):
     # get all images
     imgs = get_all_images(url)
     for img in imgs:
+        # time.sleep(5)
         # for each image, download it
         download(img, path)
 
 
-main("https://w12.haikyuuu.com/manga/chapter-1-2/", "hq")
+# url = "https://stackoverflow.com/questions/16230850/httpsconnectionpool-max-retries-exceeded"
+# url = "https://mangaplus.shueisha.co.jp/viewer/1000331"
+# url = "https://w12.haikyuuu.com/manga/chapter-1-2/"
+# main(url, "hq")
+
+# url que tiene links de drive con los pdfs de los caps
 
 """
 Función para descargar pdfs (o lo que sea) de una página donde hay links de drive
 """
 
-url = "https://www.popularanimehere.com/"
-url = "https://www.popularanimehere.com/haikyuu-manga-online-read-download/"
-
 
 def id_gdrive(url):
-    req = Request(url)
-    html_page = urlopen(req)
+    """
+    devuelve el id de uno o más links a archivos en drive en una página web
+    """
+
+    # hago esto porque a veces si no tira un error 403
+    hed = requests.utils.default_headers()
+    hed.update(
+        {
+            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0"
+        }
+    )
+
+    # llama a la url
+    req = requests.get(url, headers=hed)
 
     # hace la sopa
-    soup = bs(html_page, "lxml")
+    soup = bs(req.content, "html")
 
     # hace una lista con los links de la sopa
     links = []
     for link in soup.findAll("a"):
         links.append(link.get("href"))
 
+    links = list(filter(None, links))  # elimina los None si los hay
+
     # elije sólo los links que dicen "drive"
-    id = []
-    # drive = []
-    for link in links:
-        if "drive" in link:
-            # drive.append(link)
-            id = link.split("/")[5]  # el id de drive es el quinto coso
-            # url = "https://drive.google.com/file/d/1djZBi0ZO5Aj9zP4U5kdugXxiHJKLcO8o/view"
+    id = [link.split("/")[5] for link in links if "drive" in link]
+
+    # el id de drive es el quinto coso si tiene la forma
+    # https://drive.google.com/file/d/1djZBi0ZO5Aj9zP4U5kdugXxiHJKLcO8o/view
 
     return id
 
@@ -140,7 +158,8 @@ def id_gdrive(url):
 def download_pdf(url):
     id = id_gdrive(url)
     for ch, f_id in enumerate(id):
-        gdd.download_file_from_google_drive(file_id=f_id, dest_path=f"./ch{ch}.pdf")
+        gdd.download_file_from_google_drive(file_id=f_id, dest_path=f"./ch{ch+1}.pdf")
 
 
+url = "https://www.popularanimehere.com/haikyuu-manga-online-read-download/"
 download_pdf(url)
