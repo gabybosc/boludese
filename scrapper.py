@@ -3,6 +3,9 @@ import os
 from tqdm import tqdm
 from bs4 import BeautifulSoup as bs
 from urllib.parse import urljoin, urlparse
+from urllib.request import Request, urlopen
+from google_drive_downloader import GoogleDriveDownloader as gdd
+
 
 """
 saqué esta de https://www.thepythoncode.com/article/download-web-page-images-python
@@ -101,3 +104,43 @@ def main(url, path):
 
 
 main("https://w12.haikyuuu.com/manga/chapter-1-2/", "hq")
+
+"""
+Función para descargar pdfs (o lo que sea) de una página donde hay links de drive
+"""
+
+url = "https://www.popularanimehere.com/"
+url = "https://www.popularanimehere.com/haikyuu-manga-online-read-download/"
+
+
+def id_gdrive(url):
+    req = Request(url)
+    html_page = urlopen(req)
+
+    # hace la sopa
+    soup = bs(html_page, "lxml")
+
+    # hace una lista con los links de la sopa
+    links = []
+    for link in soup.findAll("a"):
+        links.append(link.get("href"))
+
+    # elije sólo los links que dicen "drive"
+    id = []
+    # drive = []
+    for link in links:
+        if "drive" in link:
+            # drive.append(link)
+            id = link.split("/")[5]  # el id de drive es el quinto coso
+            # url = "https://drive.google.com/file/d/1djZBi0ZO5Aj9zP4U5kdugXxiHJKLcO8o/view"
+
+    return id
+
+
+def download_pdf(url):
+    id = id_gdrive(url)
+    for ch, f_id in enumerate(id):
+        gdd.download_file_from_google_drive(file_id=f_id, dest_path=f"./ch{ch}.pdf")
+
+
+download_pdf(url)
