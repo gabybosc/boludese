@@ -10,28 +10,32 @@ cualquiera.
 """
 
 
-def find_chapter(pattern_ch, html, end_vol):
+def lista(pattern_vol, pattern_ch, html):
     """
-    le paso pattern_ch que es el patrón que se repite antes de que aparezca el
-    número de capítulo. Busca las iteraciones en las que aparezca ese patrón
-    y entre qué volúmenes aparece.
+    Arma una lista vacía. Itera en volumen, escribe el titulo. Itera en ch, si
+    está entre un volumen y el siguiente: lo agrega a ese título.
+    Habría que buscar cómo hacer para que ponga los últimos capítulos
+    (como no existe un post-último volumen, termina con los ch del anteúltimo vol)
     """
     lst = []
-    for match_ch in re.finditer(pattern_ch, html):
-        start_ch, end_ch = match_ch.span()
-        ch_number = html[end_ch + 1 : end_ch + 4]
-        if end_vol < end_ch:
-            lst.append(ch_number)
+    end_vol_prev = 0
 
-    return lst
-
-
-def in_vol(pattern_vol, pattern_ch, html):
     for match_vol in re.finditer(pattern_vol, html):
         start_vol, end_vol = match_vol.span()
-        vol_title = html[end_vol : end_vol + 20]
-        ch = find_chapter(pattern_ch, html, end_vol)
-        print(vol_title, ch)
+        vol_title = html[end_vol : end_vol + 10]
+
+        for match_ch in re.finditer(pattern_ch, html):
+            start_ch, end_ch = match_ch.span()
+            ch_number = html[end_ch + 1 : end_ch + 4]
+
+            if end_vol_prev < end_ch < end_vol:
+                lst.append(int(ch_number))  # como int, puedo hacer str si quiero
+
+        if vol_title not in lst:  # si ya está ese título, no lo escribe de nuevo
+            lst.append(vol_title)
+        end_vol_prev = end_vol
+
+    return lst
 
 
 def main_info(url):
@@ -40,27 +44,32 @@ def main_info(url):
 
     pattern_ch = "\<li\>Chapter"
     pattern_vol = '\(Volume\)" title="'
-    in_vol(pattern_vol, pattern_ch, html)
-
-
-# itero en volumen y hago una lista con la posición en la que están
+    lst = lista(pattern_vol, pattern_ch, html)
 
 
 # hq = "https://en.wikipedia.org/wiki/List_of_Haikyu!!_chapters"
 hq = "https://haikyuu.fandom.com/wiki/Haiky%C5%AB!!_Volumes"
-main_info(hq)
+page = urlopen(hq)
+html = page.read().decode("utf-8")
 
+pattern_ch = "\<li\>Chapter"
+pattern_vol = '\(Volume\)" title="'
 
-# # para juntar los caps en un tomo:
-#
-# from PyPDF2 import PdfMerger
-#
-# pdfs = ["ch1.pdf", "ch2.pdf", "ch3.pdf", "ch4.pdf"]
-#
-# merger = PdfMerger()
-#
-# for pdf in pdfs:
-#     merger.append(pdf)
-#
-# merger.write("Haikyuu!! Vol1.pdf")
-# merger.close()
+# ahora mergea los pdfs según lo que dé la lista
+from PyPDF2 import PdfMerger
+
+[ch for ch in lst if type(ch) is str]
+
+for i in lst:
+    if type(i) is str:
+        title = i
+    if type(i) is int:
+        pdf_1 = [f"ch{i}.pdf", f"ch{i}.pdf", "file3.pdf", "file4.pdf"]
+
+        merger = PdfMerger()
+
+        for pdf in pdfs:
+            merger.append(pdf)
+
+        merger.write("result.pdf")
+        merger.close()
