@@ -1,22 +1,21 @@
+from PIL import Image
+import os as os
+import fnmatch
+import glob
 import requests
 import os
-import re
 from tqdm import tqdm
 from bs4 import BeautifulSoup as bs
 from urllib.parse import urljoin, urlparse
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 from google_drive_downloader import GoogleDriveDownloader as gdd
 
-# from urllib3.exceptions import InsecureRequestWarning
-# from urllib3 import disable_warnings
 
 """
 saqué esta de https://www.thepythoncode.com/article/download-web-page-images-python
 """
 
 # primero vemos que la URL sea válida
-
-
 def is_valid(url):
     """
     Chequea que la url sea válida.
@@ -41,7 +40,6 @@ def get_all_images(url):
     soup = bs(requests.get(url).content, "html.parser")
     urls = []
     for img in tqdm(soup.find_all("img"), "Extracting images"):
-
         img_url = img.attrs.get("src")
         if not img_url:
             # si img no tiene src, lo saltea
@@ -74,13 +72,15 @@ def download(url, pathname):
         os.makedirs(pathname)
 
     # download the body of response by chunk, not immediately (?)
-    response = requests.get(url, stream=True, timeout=3)
+    response = requests.get(url, stream=True)
 
     # tamaño total del archivo
     file_size = int(response.headers.get("Content-Length", 0))
 
     # nombre del archivo
-    filename = os.path.join(pathname, url.split("/")[-1])
+    filename = os.path.join(pathname, url.split("/")[-2]+ ".png")
+    # filename = url.split("/")[-2] + ".png"
+    print(filename)
 
     # progress bar con unidad de bytes
     progress = tqdm(
@@ -105,16 +105,30 @@ def main(url, path):
     # get all images
     imgs = get_all_images(url)
     for img in imgs:
-        # time.sleep(5)
         # for each image, download it
         download(img, path)
 
+def unidor(path, pdf_path):
+    images = []
+    files = glob.glob(os.path.expanduser(path+"*.png"))
+    sorted_by_mtime_ascending = sorted(files, key=lambda t: os.stat(t).st_mtime)  # si se bajaron en orden, con esto las selecciona en orden
 
-# descomentar lo siguiente para que funcione:
+    for file in sorted_by_mtime_ascending:  #os.listdir(path):
+        if fnmatch.fnmatch(file, "*.png"):
+            images.append(file)
 
+    final = [Image.open(f) for f in images]
 
-# url = "https://stackoverflow.com/questions/16230850/httpsconnectionpool-max-retries-exceeded"
-# url = "https://mangaplus.shueisha.co.jp/viewer/1000331"
-# url = "https://w12.haikyuuu.com/manga/chapter-100/"
-url = "https://haikyuubu.com/manga/haikyuu-bu-chapter-1/"
-main(url, "../hq")
+    for i in range(len(final)):
+        final[i].load()  # load es necesario porque a veces flashea y no abre bien los archivos
+
+    final[0].save(
+        pdf_path, "PDF" ,resolution=100.0, save_all=True, append_images=final[1:]
+    )
+
+for vol in range(251, 300):
+    url = f"https://haikyuumanga.online/manga/haikyuu-chapter-{vol}/"
+    path = f"../hq/vol_{vol}/"
+    pdf_path = f"../hq/vol_{vol}.pdf"
+    main(url, path)
+    unidor(path, pdf_path)
