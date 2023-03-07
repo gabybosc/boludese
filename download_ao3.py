@@ -32,9 +32,11 @@ mfl = session.get_marked_for_later()  # tarda un ratito pero no tanto. No los ca
 pairings = {
     "Miya Atsumu/Sakusa Kiyoomi": "SakuAtsu",
     "Iwaizumi Hajime/Oikawa Tooru": "IwaOi",
+    "Hinata Shouyou/Miya Atsumu": "AtsuHina",
     "Hinata Shouyou/Kageyama Tobio": "KageHina",
     "Akaashi Keiji/Bokuto Koutarou": "BokuAka",
     "Kozume Kenma/Kuroo Tetsurou": "KuroKen",
+    "Kuroo Tetsurou/Sawamura Daichi": "KuroDai",
     "Sawamura Daichi/Sugawara Koushi": "DaiSuga",
     "Miya Osamu/Suna Rintarou": "OsaSuna",
     "Tendou Satori/Ushijima Wakatoshi": "UshiTen",
@@ -52,14 +54,83 @@ pairings = {
     "Jean Kirstein/Eren Yeager": "EreJean",
     "Female Shepard/Garrus Vakarian": "Shakarian",
     "Kylo Ren/Rey": "Reylo",
+    "Akaashi Keiji/Bokuto Koutarou/Kuroo Tetsurou/Tsukishima Kei": "BokuAkaKuroTsukki",
+    "Akaashi Keiji/Bokuto Koutarou/Kuroo Tetsurou": "BoKuroAka",
+    "Kuroo Tetsurou/Oikawa Tooru": "KuroOi",
+    "Vash the Stampede/Nicholas D. Wolfwood": "VashWood",
 }
+
+
+relevant_tags = [
+    "Alternate Universe",
+    "Alternate Universe - Soulmates",
+    "Alternate Universe - College/University",
+    "Office AU",
+    "Friends With Benefits",
+    "Friends to Lovers",
+    "Rivals to Lovers",
+    "Enemies to Lovers",
+    "Exes to Lovers",
+    "Stangers to Lovers",
+    "Annoyances to Lovers",
+    "Future fic",
+    "Post-Canon",
+    "Post-Time Skip",
+    "Canon Compliant",
+    "Genderswap",
+    "Rule 63",
+    "Dead Dove: Do Not Eat",
+    "Humor",
+    "Getting Together",
+    "Fluff",
+    "Angst",
+    "Smut",
+    "Porn",
+    "Eventual smut",
+    "Pining",
+    "Hurt/Comfort",
+    "First Kiss",
+    "Practice Kissing",
+    "Plot What Plot/Porn Without Plot",
+    "Porn With Plot",
+    "Fake/Pretend Relationship",
+    "Established Relationship",
+    "Soulmates",
+    "Jealousy",
+]
+
+relevant_tags_dict = {
+    "Alternate Universe": "AU",
+    "Alternate Universe - Soulmates": "Soulmates",
+    "Alternate Universe - College/University": "College AU",
+    "Friends to Lovers": "FtL",
+    "Rivals to Lovers": "RtL",
+    "Enemies to Lovers": "EtL",
+    "Stangers to Lovers": "StL",
+    "Friends With Benefits": "FwB",
+    "Porn With Plot": "pwp",
+    "Genderswap": "fem",
+    "Rule 63": "fem",
+    "Dead Dove: Do Not Eat": "DD:DNE",
+    "Plot What Plot/Porn Without Plot": "PwoP",
+    "Fake/Pretend Relationship": "Fake Dating",
+}
+
+
+def borrar(string, palabra):
+    s = string.replace(palabra, "")
+    return s
 
 
 def metadata(ww):
     ww.reload()
     tit = ww.title
     author = ww.authors[0].url.split("/")[-1]
-    ship = ww.relationships[0]
+    ship = ww.relationships
+    if type(ship) == list and len(ship) > 0:
+        ship = ship[0]
+    elif len(ship) == 0:
+        ship = "ninguno"
     fandom = ww.fandoms[0]
     rat = ww.rating[0]  # que sea sólo la primera letra
     summ = ww.summary
@@ -67,11 +138,50 @@ def metadata(ww):
         summ = summ[:300]
     link = ww.url
     wc = ww.words
-    return (tit, author, ship, wc, rat, summ, link)
+    chap = ww.nchapters
+    date = ww.date_published
+    kd = ww.kudos
+    serie = ww.series
+    if type(serie) == list and len(serie) > 0:
+        ser = str(serie[0])
+        for i in ["Series", "[", "]", "<", ">"]:
+            ser = borrar(ser, i)
+    else:
+        ser = serie
+    taglist = []
+    for t in ww.tags:
+        if t in relevant_tags:
+            if relevant_tags_dict.get(t) is None:
+                taglist.append(t)
+            else:
+                taglist.append(relevant_tags_dict.get(t))
+
+    if pairings.get(ship) is None:
+        sh = ship
+    else:
+        sh = pairings.get(ship)
+
+    fecha = str(date.year) + "-" + str(date.month)
+
+    return (
+        tit,
+        author,
+        sh,
+        wc,
+        rat,
+        summ,
+        ", ".join(taglist),
+        fecha,
+        ser,
+        kd,
+        fandom,
+        link,
+        chap,
+    )
 
 
 header = ["Title", "Author", "pairing", "WC", "Rating", "Summary", "url"]
-path = "../hq/fics/"
+path = "../../hq/fics/"
 
 lst = [fic for fic in os.listdir(path)]
 titles = [titulo[:-5] for titulo in lst]
@@ -87,14 +197,16 @@ Si no, los baja
 with codecs.open(path + "fics en mfl.csv", "a", "utf-8") as f:  # "a" si quiero append
     archivo = csv.writer(f)
     # archivo.writerow(header)
-    for i in range(0, 15):  # los últimos 15 que haya puesto en mfl
+    for i in range(0, 20):  # los últimos 15 que haya puesto en mfl
         ww = mfl[i]
-        tit, author, ship, wc, rat, summ, link = metadata(ww)
+        md = metadata(ww)
+        tit = md[0]
         if tit not in titles:  # lo descarga sólo si no lo tengo ya bajado
-            if pairings.get(ship) is None:
-                archivo.writerow([tit, author, ship, wc, rat, summ, link])
-            else:
-                archivo.writerow([tit, author, pairings.get(ship), wc, rat, summ, link])
+            archivo.writerow(md)
             # si quiero además descargarlos:
             tit = tit.translate(table)  # elimina los caracteres especiales
-            ww.download_to_file(path + tit + ".mobi", filetype="MOBI")
+            chap = md[-1]
+            if chap > 1:
+                ww.download_to_file(path + tit + ".mobi", filetype="MOBI")
+            else:
+                ww.download_to_file(path + tit + ".epub", filetype="epub")
