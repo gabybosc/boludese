@@ -84,15 +84,25 @@ relevant_tags = [
     "Getting Together",
     "Fluff",
     "Angst",
+    "Heavy Angst",
     "Smut",
     "Porn",
+    "Anal",
+    "Fingering",
+    "Blow Jobs",
+    "Oral Sex",
+    "Alien Sex",
+    "Anal Sex",
+    "Creampie",
     "Eventual smut",
     "Pining",
+    "Mutual Pining",
     "Hurt/Comfort",
     "First Kiss",
     "Practice Kissing",
     "Plot What Plot/Porn Without Plot",
     "Porn With Plot",
+    "Porn with Feelings",
     "Fake/Pretend Relationship",
     "Established Relationship",
     "Soulmates",
@@ -109,8 +119,19 @@ relevant_tags_dict = {
     "Stangers to Lovers": "StL",
     "Friends With Benefits": "FwB",
     "Porn With Plot": "pwp",
+    "Heavy Angst": "Angst",
+    "Porn": "Smut",
+    "Anal": "Smut",
+    "Anal Sex": "Smut",
+    "Creampie": "Smut",
+    "Oral Sex": "Smut",
+    "Alien Sex": "Smut",
+    "Blow Jobs": "Smut",
+    "Fingering": "Smut",
+    "Eventual smut": "Smut",
     "Genderswap": "fem",
     "Rule 63": "fem",
+    "Mutual Pining": "Pining",
     "Dead Dove: Do Not Eat": "DD:DNE",
     "Plot What Plot/Porn Without Plot": "PwoP",
     "Fake/Pretend Relationship": "Fake Dating",
@@ -122,15 +143,45 @@ def borrar(string, palabra):
     return s
 
 
-def metadata(ww):
-    ww.reload()
-    tit = ww.title
-    author = ww.authors[0].url.split("/")[-1]
+def taglist(ww):
+    taglist = []
+    for t in ww.tags:
+        if t in relevant_tags:
+            if relevant_tags_dict.get(t) is None:
+                taglist.append(t)
+            else:
+                taglist.append(relevant_tags_dict.get(t))
+    return set(taglist)  # para que no haya repetidas
+
+
+def serie(ww):
+    serie = ww.series
+    if type(serie) == list and len(serie) > 0:
+        ser = str(serie[0])
+        for i in ["Series", "[", "]", "<", ">"]:
+            ser = borrar(ser, i)
+    else:
+        ser = serie
+    return ser
+
+
+def ships(ww):
     ship = ww.relationships
     if type(ship) == list and len(ship) > 0:
         ship = ship[0]
     elif len(ship) == 0:
         ship = "ninguno"
+    if pairings.get(ship) is None:
+        sh = ship
+    else:
+        sh = pairings.get(ship)
+    return sh
+
+
+def metadata(ww):
+    ww.reload()
+    tit = ww.title
+    author = ww.authors[0].url.split("/")[-1]
     fandom = ww.fandoms[0]
     rat = ww.rating[0]  # que sea sólo la primera letra
     summ = ww.summary
@@ -141,25 +192,9 @@ def metadata(ww):
     chap = ww.nchapters
     date = ww.date_published
     kd = ww.kudos
-    serie = ww.series
-    if type(serie) == list and len(serie) > 0:
-        ser = str(serie[0])
-        for i in ["Series", "[", "]", "<", ">"]:
-            ser = borrar(ser, i)
-    else:
-        ser = serie
-    taglist = []
-    for t in ww.tags:
-        if t in relevant_tags:
-            if relevant_tags_dict.get(t) is None:
-                taglist.append(t)
-            else:
-                taglist.append(relevant_tags_dict.get(t))
-
-    if pairings.get(ship) is None:
-        sh = ship
-    else:
-        sh = pairings.get(ship)
+    sh = ships(ww)
+    taglst = taglist(ww)
+    ser = serie(ww)
 
     fecha = str(date.year) + "-" + str(date.month)
 
@@ -170,7 +205,7 @@ def metadata(ww):
         wc,
         rat,
         summ,
-        ", ".join(taglist),
+        ", ".join(taglst),
         fecha,
         ser,
         kd,
@@ -183,30 +218,39 @@ def metadata(ww):
 header = ["Title", "Author", "pairing", "WC", "Rating", "Summary", "url"]
 path = "../../hq/fics/"
 
-lst = [fic for fic in os.listdir(path)]
-titles = [titulo[:-5] for titulo in lst]
-
 # El dict para eliminar todos los caracteres especiales del título
 delete_dict = {sp_character: "" for sp_character in string.punctuation}
 table = str.maketrans(delete_dict)
 
-"""
-Va a abrir los últimos 15 que tenga en mfl. Si los tengo bajados, no los descarga.
-Si no, los baja
-"""
-with codecs.open(path + "fics en mfl.csv", "a", "utf-8") as f:  # "a" si quiero append
-    archivo = csv.writer(f)
-    # archivo.writerow(header)
-    for i in range(0, 20):  # los últimos 15 que haya puesto en mfl
-        ww = mfl[i]
-        md = metadata(ww)
-        tit = md[0]
-        if tit not in titles:  # lo descarga sólo si no lo tengo ya bajado
-            archivo.writerow(md)
-            # si quiero además descargarlos:
+lst = [fic for fic in os.listdir(path)]
+titles = [
+    titulo[:-5].translate(table) for titulo in lst
+]  # los títulos sin caracteres especiales
+
+
+def downloader(numero):
+    """
+    Va a abrir los últimos que tenga en mfl. Si los tengo bajados, no los descarga.
+    Si no, los baja"""
+
+    with codecs.open(
+        path + "fics en mfl.csv", "a", "utf-8"
+    ) as f:  # "a" si quiero append
+        archivo = csv.writer(f)
+        # archivo.writerow(header)
+        for i in range(0, numero):  # los últimos 15 que haya puesto en mfl
+            ww = mfl[i]
+            md = metadata(ww)
+            tit = md[0]
             tit = tit.translate(table)  # elimina los caracteres especiales
-            chap = md[-1]
-            if chap > 1:
-                ww.download_to_file(path + tit + ".mobi", filetype="MOBI")
-            else:
-                ww.download_to_file(path + tit + ".epub", filetype="epub")
+            if tit not in titles:  # lo descarga sólo si no lo tengo ya bajado
+                archivo.writerow(md)
+                # si quiero además descargarlos:
+                chap = md[-1]
+                if chap > 1:
+                    ww.download_to_file(path + tit + ".mobi", filetype="MOBI")
+                else:
+                    ww.download_to_file(path + tit + ".epub", filetype="epub")
+
+
+downloader(20)
