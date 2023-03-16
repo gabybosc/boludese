@@ -11,7 +11,9 @@ Uso el segundo
 # work = api.work(id='258626')
 
 """
-Mira todo lo que tenga en marked for later y lo
+Mira todo lo que tenga en marked for later y lo descarga
+También mira en la lista qué fics están sin terminar y chequea si hubo update
+(en caso de que sí, la descarga) -> hace lo de fics_incompletas_update
 """
 
 import csv as csv
@@ -19,6 +21,7 @@ import codecs
 import string
 import os as os
 import AO3  # https://github.com/ArmindoFlores/ao3_api
+from fics_incompletas_update import descargar_incompletas
 
 # import gspread
 # from oauth2client.service_account import ServiceAccountCredentials
@@ -264,3 +267,4 @@ def downloader(numero):
 
 
 downloader(20)
+descargar_incompletas()
