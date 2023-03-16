@@ -200,6 +200,7 @@ def metadata(ww):
     chap = ww.nchapters
     date = ww.date_published
     kd = ww.kudos
+    comp = ww.complete
     sh = ships(ww)
     taglst = taglist(ww)
     ser = serie(ww)
@@ -220,6 +221,7 @@ def metadata(ww):
         fandom,
         link,
         chap,
+        comp,
     )
 
 
@@ -254,7 +256,7 @@ def downloader(numero):
             if tit not in titles:  # lo descarga sólo si no lo tengo ya bajado
                 archivo.writerow(md)
                 # si quiero además descargarlos:
-                chap = md[-1]
+                chap = md[-2]
                 if chap > 1:
                     ww.download_to_file(path + tit + ".mobi", filetype="MOBI")
                 else:
