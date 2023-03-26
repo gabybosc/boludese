@@ -47,11 +47,13 @@ def metadata(ww):
     tit = ww.title
     chap = ww.nchapters
     comp = ww.complete
+    wc = ww.words
 
     return (
         tit,
         chap,
         comp,
+        wc,
     )
 
 
@@ -64,13 +66,15 @@ def descargar_incompletas():
         chapter_ssheet = get_from_spreadsheet(data, lst[i], "chapters")
         workid = AO3.utils.workid_from_url(url)
         ww = AO3.Work(workid)
-        tit, chap, comp = metadata(ww)
+        tit, chap, comp, wc = metadata(ww)
         if int(chapter_ssheet) < int(chap):
             # si los caps que tiene son más que los que dice la spreadsheet
             data.iloc[lst[i], data.columns.get_loc("chapters")] = chap
             # updatea el número de caps
             data.iloc[lst[i], data.columns.get_loc("complete")] = comp
             # updatea si está o no terminada
+            data.iloc[lst[i], data.columns.get_loc("WC")] = wc
+            # updatea el wordcount
             data.to_csv(path + "fics en mfl.csv", index=False)
             # escribe el csv
             ww.download_to_file(path + tit + ".mobi", filetype="MOBI")

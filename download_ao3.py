@@ -65,9 +65,11 @@ pairings = {
 
 
 relevant_tags = [
+    "AU",
     "Alternate Universe",
     "Alternate Universe - Soulmates",
     "Alternate Universe - College/University",
+    "Alternate Universe - Medieval",
     "Office AU",
     "Friends With Benefits",
     "Friends to Lovers",
@@ -121,6 +123,7 @@ relevant_tags_dict = {
     "Alternate Universe": "AU",
     "Alternate Universe - Soulmates": "Soulmates",
     "Alternate Universe - College/University": "College AU",
+    "Alternate Universe - Medieval": "Medieval AU",
     "Friends to Lovers": "FtL",
     "Rivals to Lovers": "RtL",
     "Enemies to Lovers": "EtL",
