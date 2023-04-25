@@ -62,11 +62,14 @@ def descargar_incompletas():
 
     lst = spreadsheet(data)
     for i in range(len(lst)):
+        # print(lst[i])
         url = get_from_spreadsheet(data, lst[i], "url")
         chapter_ssheet = get_from_spreadsheet(data, lst[i], "chapters")
         workid = AO3.utils.workid_from_url(url)
         ww = AO3.Work(workid)
         tit, chap, comp, wc = metadata(ww)
+        tit = tit.translate(table)
+        # print(tit)
         if int(chapter_ssheet) < int(chap):
             # si los caps que tiene son más que los que dice la spreadsheet
             data.iloc[lst[i], data.columns.get_loc("chapters")] = chap
@@ -81,4 +84,4 @@ def descargar_incompletas():
             # descarga
 
 
-# descargar_incompletas()
+descargar_incompletas()

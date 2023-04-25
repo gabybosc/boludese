@@ -61,6 +61,10 @@ pairings = {
     "Akaashi Keiji/Bokuto Koutarou/Kuroo Tetsurou": "BoKuroAka",
     "Kuroo Tetsurou/Oikawa Tooru": "KuroOi",
     "Vash the Stampede/Nicholas D. Wolfwood": "VashWood",
+    "Millions Knives/Vash the Stampede (Trigun)": "Plantcest",
+    "Millions Knives/Vash the Stampede/Nicholas D. Wolfwood": "PlantWood",
+    "Millions Knives/Nicholas D. Wolfwood/Vash the Stampede": "PlantWood",
+    "Millions Knives/Nicholas D. Wolfwood": "KnivesWood",
 }
 
 
@@ -70,7 +74,13 @@ relevant_tags = [
     "Alternate Universe - Soulmates",
     "Alternate Universe - College/University",
     "Alternate Universe - Medieval",
+    "Alternate Universe - Flower Shop",
+    "Alternate Universe - Coffee Shop",
+    "Alternate Universe - Modern Setting",
     "Office AU",
+    "Time Travel",
+    "Time Loop",
+    "Reincarnation",
     "Friends With Benefits",
     "Friends to Lovers",
     "Rivals to Lovers",
@@ -95,6 +105,8 @@ relevant_tags = [
     "Smut",
     "Porn",
     "Anal",
+    "Rimming",
+    "Rough Sex",
     "Fingering",
     "Blow Jobs",
     "Hand Jobs",
@@ -102,6 +114,8 @@ relevant_tags = [
     "Oral Sex",
     "Alien Sex",
     "Anal Sex",
+    "Wolfwood Eats Pussy Like A Champ",
+    "Nicholas D. Wolfwood is Good at Cunnilingus",
     "Creampie",
     "Eventual smut",
     "Pining",
@@ -117,6 +131,7 @@ relevant_tags = [
     "Soulmates",
     "Jealousy",
     "Fix-It",
+    "Slow Burn",
 ]
 
 relevant_tags_dict = {
@@ -124,6 +139,10 @@ relevant_tags_dict = {
     "Alternate Universe - Soulmates": "Soulmates",
     "Alternate Universe - College/University": "College AU",
     "Alternate Universe - Medieval": "Medieval AU",
+    "Alternate Universe - Flower Shop": "Flower Shop AU",
+    "Alternate Universe - Coffee Shop": "Coffee Shop AU",
+    "Alternate Universe - Modern Setting": "Modern AU",
+    "Time Travel": "Time Loop",
     "Friends to Lovers": "FtL",
     "Rivals to Lovers": "RtL",
     "Enemies to Lovers": "EtL",
@@ -134,6 +153,8 @@ relevant_tags_dict = {
     "Heavy Angst": "Angst",
     "Porn": "Smut",
     "Anal": "Smut",
+    "Rimming": "Smut",
+    "Rough Sex": "Smut",
     "Anal Sex": "Smut",
     "Creampie": "Smut",
     "Oral Sex": "Smut",
@@ -142,6 +163,8 @@ relevant_tags_dict = {
     "Fingering": "Smut",
     "Hand Jobs": "Smut",
     "Frottage": "Smut",
+    "Nicholas D. Wolfwood is Good at Cunnilingus": "Smut",
+    "Wolfwood Eats Pussy Like A Champ": "Smut",
     "Eventual smut": "Smut",
     "Genderswap": "fem",
     "Rule 63": "fem",
@@ -269,5 +292,5 @@ def downloader(numero):
                     ww.download_to_file(path + tit + ".epub", filetype="epub")
 
 
-downloader(20)
-descargar_incompletas()
+downloader(15)
+# descargar_incompletas()
