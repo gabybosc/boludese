@@ -28,7 +28,7 @@ from fics_incompletas_update import descargar_incompletas
 
 session = AO3.Session("liightmyfire", "redondos93")
 mfl = session.get_marked_for_later()  # tarda un ratito pero no tanto. No los carga
-
+print("abrió la lista de mfl")
 # mfl[0] es el más reciente
 
 
@@ -267,14 +267,13 @@ titles = [
 ]  # los títulos sin caracteres especiales
 
 
-def downloader(numero):
+def downloader(numero, filename):
     """
     Va a abrir los últimos que tenga en mfl. Si los tengo bajados, no los descarga.
     Si no, los baja"""
 
-    with codecs.open(
-        path + "fics en mfl.csv", "a", "utf-8"
-    ) as f:  # "a" si quiero append
+    with codecs.open(path + filename, "a", "utf-8") as f:
+        # "a" si quiero append
         archivo = csv.writer(f)
         # archivo.writerow(header)
         for i in range(0, numero):  # los últimos 15 que haya puesto en mfl
@@ -292,5 +291,6 @@ def downloader(numero):
                     ww.download_to_file(path + tit + ".epub", filetype="epub")
 
 
-downloader(15)
+# downloader(15, "fics en mfl.csv")
+downloader(15, "trigun_mfl.csv")
 # descargar_incompletas()

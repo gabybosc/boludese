@@ -57,8 +57,8 @@ def metadata(ww):
     )
 
 
-def descargar_incompletas():
-    data = pd.read_csv(path + "fics en mfl.csv")
+def descargar_incompletas(filename):
+    data = pd.read_csv(path + filename)
 
     lst = spreadsheet(data)
     for i in range(len(lst)):
@@ -78,10 +78,11 @@ def descargar_incompletas():
             # updatea si está o no terminada
             data.iloc[lst[i], data.columns.get_loc("WC")] = wc
             # updatea el wordcount
-            data.to_csv(path + "fics en mfl.csv", index=False)
+            data.to_csv(path + filename, index=False)
             # escribe el csv
             ww.download_to_file(path + tit + ".mobi", filetype="MOBI")
             # descarga
 
 
-descargar_incompletas()
+descargar_incompletas("fics en mfl.csv")
+descargar_incompletas("trigun_mfl.csv")
