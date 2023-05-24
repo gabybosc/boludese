@@ -21,7 +21,11 @@ import codecs
 import string
 import os as os
 import AO3  # https://github.com/ArmindoFlores/ao3_api
-from fics_incompletas_update import descargar_incompletas
+from clear_cache import clear as clear_cache
+
+clear_cache(
+    dir="."
+)  # esto es porque por algún motivo, cuando lo corro, flashea y abre todo mi mfl
 
 # import gspread
 # from oauth2client.service_account import ServiceAccountCredentials
@@ -293,4 +297,3 @@ def downloader(numero, filename):
 
 # downloader(15, "fics en mfl.csv")
 downloader(15, "trigun_mfl.csv")
-# descargar_incompletas()
