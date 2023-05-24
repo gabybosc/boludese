@@ -68,7 +68,7 @@ def pdf_final(lst):
                 merger.append(pdf)
 
             # key, value = d.items()
-            merger.write(f"../../Documents/Haikyuu/{item}_Vol{j}.pdf")
+            merger.write(f"../../Documents/Haikyuu/{item}(Vol{j}).pdf")
             merger.close()
             j = j + 1
 
