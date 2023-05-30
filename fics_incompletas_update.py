@@ -84,5 +84,5 @@ def descargar_incompletas(filename):
             # descarga
 
 
-descargar_incompletas("fics en mfl.csv")
 descargar_incompletas("trigun_mfl.csv")
+# descargar_incompletas("fics en mfl.csv")

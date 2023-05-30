@@ -31,6 +31,7 @@ clear_cache(
 # from oauth2client.service_account import ServiceAccountCredentials
 
 session = AO3.Session("liightmyfire", "redondos93")
+print("abrió la sesión")
 mfl = session.get_marked_for_later()  # tarda un ratito pero no tanto. No los carga
 print("abrió la lista de mfl")
 # mfl[0] es el más reciente
@@ -51,24 +52,28 @@ pairings = {
     "Tsukishima Kei/Yamaguchi Tadashi": "TsukkiYama",
     "Kuroo Tetsurou/Tsukishima Kei": "KuroTsuki",
     "Bokuto Koutarou/Kuroo Tetsurou": "BoKuroo",
+    "Akaashi Keiji/Bokuto Koutarou/Kuroo Tetsurou/Tsukishima Kei": "BokuAkaKuroTsukki",
+    "Akaashi Keiji/Bokuto Koutarou/Kuroo Tetsurou": "BoKuroAka",
     "Hanamaki Takahiro/Matsukawa Issei": "MatsuHana",
-    "Marco Bott/Jean Kirstein": "JeanMarco",
+    "Kuroo Tetsurou/Oikawa Tooru": "KuroOi",
     "Hasegawa Langa/Kyan Reki": "Renga",
     "Getou Suguru/Gojo Satoru": "SatoSugu",
+    "Marco Bott/Jean Kirstein": "JeanMarco",
     "Jean Kirstein/Marco Bodt": "JeanMarco",
     "Reiner Braun/Jean Kirstein": "ReiJean",
     "Reiner Braun/Porco Galliard": "GalliRei",
     "Jean Kirstein/Eren Yeager": "EreJean",
     "Female Shepard/Garrus Vakarian": "Shakarian",
+    "Commander Shepard/Garrus Vakarian": "Shakarian",
     "Kylo Ren/Rey": "Reylo",
-    "Akaashi Keiji/Bokuto Koutarou/Kuroo Tetsurou/Tsukishima Kei": "BokuAkaKuroTsukki",
-    "Akaashi Keiji/Bokuto Koutarou/Kuroo Tetsurou": "BoKuroAka",
-    "Kuroo Tetsurou/Oikawa Tooru": "KuroOi",
+    "Thanatos/Zagreus": "ThanZag",
     "Vash the Stampede/Nicholas D. Wolfwood": "VashWood",
     "Millions Knives/Vash the Stampede (Trigun)": "Plantcest",
     "Millions Knives/Vash the Stampede/Nicholas D. Wolfwood": "PlantWood",
     "Millions Knives/Nicholas D. Wolfwood/Vash the Stampede": "PlantWood",
     "Millions Knives/Nicholas D. Wolfwood": "KnivesWood",
+    "Mitsurugi Reiji | Miles Edgeworth/Naruhodou Ryuuichi | Phoenix Wright": "NaruMitsu",
+    "Mitsurugi Reiji/Naruhodou Ryuuichi | Miles Edgeworth/Phoenix Wright": "NaruMitsu",
 }
 
 
@@ -192,6 +197,8 @@ def taglist(ww):
                 taglist.append(t)
             else:
                 taglist.append(relevant_tags_dict.get(t))
+    if "AU" in ww.tags:
+        taglist.append("AU")
     return set(taglist)  # para que no haya repetidas
 
 
@@ -295,5 +302,5 @@ def downloader(numero, filename):
                     ww.download_to_file(path + tit + ".epub", filetype="epub")
 
 
-# downloader(15, "fics en mfl.csv")
-downloader(15, "trigun_mfl.csv")
+downloader(15, "fics en mfl.csv")
+# downloader(15, "trigun_mfl.csv")
