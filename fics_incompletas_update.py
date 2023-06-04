@@ -29,6 +29,7 @@ def spreadsheet(data):
     return lst
 
 
+trigun = input("Trigun? (y/n)\n")
 session = AO3.Session("liightmyfire", "redondos93")
 
 
@@ -84,5 +85,7 @@ def descargar_incompletas(filename):
             # descarga
 
 
-descargar_incompletas("trigun_mfl.csv")
-# descargar_incompletas("fics en mfl.csv")
+if trigun == "y" or "Y" or "yes":
+    descargar_incompletas("trigun_mfl.csv")
+else:
+    descargar_incompletas("fics en mfl.csv")
