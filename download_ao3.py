@@ -30,6 +30,7 @@ clear_cache(
 # import gspread
 # from oauth2client.service_account import ServiceAccountCredentials
 
+trigun = input("Trigun? (y/n)\n")
 session = AO3.Session("liightmyfire", "redondos93")
 print("abrió la sesión")
 mfl = session.get_marked_for_later()  # tarda un ratito pero no tanto. No los carga
@@ -302,5 +303,7 @@ def downloader(numero, filename):
                     ww.download_to_file(path + tit + ".epub", filetype="epub")
 
 
-downloader(15, "fics en mfl.csv")
-# downloader(15, "trigun_mfl.csv")
+if trigun == "y" or "Y" or "yes":
+    downloader(15, "trigun_mfl.csv")
+else:
+    downloader(15, "fics en mfl.csv")
