@@ -17,6 +17,8 @@ Luego las busca en mfl y si fueron updateadas, las descarga
 podría modificarlo para que lea la url (total está en la spreadsheet)
 y las busque directamente. Quizás sea mejor.
 """
+# trigun = input("Trigun? (y/n)\n")
+# session = AO3.Session("liightmyfire", "redondos93")
 
 
 def spreadsheet(data):
@@ -27,10 +29,6 @@ def spreadsheet(data):
             # lst.append(data.iloc[i]["Title"])
             lst.append(i)
     return lst
-
-
-trigun = input("Trigun? (y/n)\n")
-session = AO3.Session("liightmyfire", "redondos93")
 
 
 def get_from_spreadsheet(data, idx, colname):
@@ -83,9 +81,3 @@ def descargar_incompletas(filename):
             # escribe el csv
             ww.download_to_file(path + tit + ".mobi", filetype="MOBI")
             # descarga
-
-
-if trigun == "y" or "Y" or "yes":
-    descargar_incompletas("trigun_mfl.csv")
-else:
-    descargar_incompletas("fics en mfl.csv")

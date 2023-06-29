@@ -23,6 +23,9 @@ import os as os
 import AO3  # https://github.com/ArmindoFlores/ao3_api
 from clear_cache import clear as clear_cache
 
+from fics_incompletas_update import descargar_incompletas
+from time import sleep
+
 clear_cache(
     dir="."
 )  # esto es porque por algún motivo, cuando lo corro, flashea y abre todo mi mfl
@@ -30,7 +33,6 @@ clear_cache(
 # import gspread
 # from oauth2client.service_account import ServiceAccountCredentials
 
-trigun = input("Trigun? (y/n)\n")
 session = AO3.Session("liightmyfire", "redondos93")
 print("abrió la sesión")
 mfl = session.get_marked_for_later()  # tarda un ratito pero no tanto. No los carga
@@ -87,6 +89,10 @@ relevant_tags = [
     "Alternate Universe - Flower Shop",
     "Alternate Universe - Coffee Shop",
     "Alternate Universe - Modern Setting",
+    "Alternate Universe - Canon Divergence",
+    "Alternate Universe - Werewolf",
+    "Alternate Universe - Vampire",
+    "Alternate Universe - Pirates",
     "Office AU",
     "Time Travel",
     "Time Loop",
@@ -112,6 +118,7 @@ relevant_tags = [
     "Angst",
     "Fluff and Angst",
     "Heavy Angst",
+    "Angst with a Happy Ending",
     "Smut",
     "Porn",
     "Anal",
@@ -131,10 +138,11 @@ relevant_tags = [
     "Pining",
     "Mutual Pining",
     "Hurt/Comfort",
-    "First Kiss",
     "Practice Kissing",
+    "First Kiss",
     "Plot What Plot/Porn Without Plot",
     "Porn With Plot",
+    "PWP",
     "Porn with Feelings",
     "Fake/Pretend Relationship",
     "Established Relationship",
@@ -142,6 +150,7 @@ relevant_tags = [
     "Jealousy",
     "Fix-It",
     "Slow Burn",
+    "Slow Build",
 ]
 
 relevant_tags_dict = {
@@ -152,6 +161,9 @@ relevant_tags_dict = {
     "Alternate Universe - Flower Shop": "Flower Shop AU",
     "Alternate Universe - Coffee Shop": "Coffee Shop AU",
     "Alternate Universe - Modern Setting": "Modern AU",
+    "Alternate Universe - Werewolf": "Werewolf AU",
+    "Alternate Universe - Vampire": "Vampire AU",
+    "Alternate Universe - Pirates": "Pirate AU",
     "Time Travel": "Time Loop",
     "Friends to Lovers": "FtL",
     "Rivals to Lovers": "RtL",
@@ -198,7 +210,7 @@ def taglist(ww):
                 taglist.append(t)
             else:
                 taglist.append(relevant_tags_dict.get(t))
-    if "AU" in ww.tags:
+    if "AU" in ww.tags or "Alternate Universe" in ww.tags:
         taglist.append("AU")
     return set(taglist)  # para que no haya repetidas
 
@@ -279,31 +291,41 @@ titles = [
 ]  # los títulos sin caracteres especiales
 
 
-def downloader(numero, filename):
+def writefile(filename, ww, tit, md):
+    with codecs.open(filename, "a", "utf-8") as f:
+        archivo = csv.writer(f)
+        if tit not in titles:  # lo descarga sólo si no lo tengo ya bajado
+            archivo.writerow(md)
+            # si quiero además descargarlos:
+            chap = md[-2]
+            if chap > 1:
+                ww.download_to_file(path + tit + ".mobi", filetype="MOBI")
+            else:
+                ww.download_to_file(path + tit + ".epub", filetype="epub")
+
+
+def downloader(numero):
     """
     Va a abrir los últimos que tenga en mfl. Si los tengo bajados, no los descarga.
     Si no, los baja"""
 
-    with codecs.open(path + filename, "a", "utf-8") as f:
-        # "a" si quiero append
-        archivo = csv.writer(f)
-        # archivo.writerow(header)
-        for i in range(0, numero):  # los últimos 15 que haya puesto en mfl
-            ww = mfl[i]
-            md = metadata(ww)
-            tit = md[0]
-            tit = tit.translate(table)  # elimina los caracteres especiales
-            if tit not in titles:  # lo descarga sólo si no lo tengo ya bajado
-                archivo.writerow(md)
-                # si quiero además descargarlos:
-                chap = md[-2]
-                if chap > 1:
-                    ww.download_to_file(path + tit + ".mobi", filetype="MOBI")
-                else:
-                    ww.download_to_file(path + tit + ".epub", filetype="epub")
+    # archivo.writerow(header)
+    for i in range(0, numero):  # los últimos n que haya puesto en mfl
+        ww = mfl[i]
+        md = metadata(ww)
+        tit = md[0]
+        tit = tit.translate(table)  # elimina los caracteres especiales
+        if (
+            md[10] == "Trigun Stampede (Anime 2023)"
+            or md[10] == "Trigun (Anime & Manga 1995-2008)"
+        ):
+            writefile(path + "trigun_mfl.csv", ww, tit, md)
+        else:
+            writefile(path + "fics en mfl.csv", ww, tit, md)
 
 
-if trigun == "y" or "Y" or "yes":
-    downloader(15, "trigun_mfl.csv")
-else:
-    downloader(15, "fics en mfl.csv")
+downloader(15)
+sleep(60)
+descargar_incompletas("trigun_mfl.csv")
+sleep(60)
+descargar_incompletas("fics en mfl.csv")
