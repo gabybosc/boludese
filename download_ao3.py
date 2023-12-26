@@ -1,14 +1,19 @@
+import csv as csv
+import codecs
+import string
+import os as os
+import AO3  # https://github.com/ArmindoFlores/ao3_api
+from clear_cache import clear as clear_cache
+from creds import creds
+
+from fics_incompletas_update import descargar_incompletas
+from time import sleep
+
 """
 Hay dos que podrían servir, no puedo tener instalados ambos a la vez
 https://github.com/alexwlchan/ao3 y https://github.com/ArmindoFlores/ao3_api
 Uso el segundo
 """
-# from ao3 import AO3  # https://github.com/alexwlchan/ao3
-# from ao3.works import RestrictedWork
-#
-# api = AO3()
-# api.login('liightmyfire', 'redondos93')
-# work = api.work(id='258626')
 
 """
 Mira todo lo que tenga en marked for later y lo descarga
@@ -16,15 +21,6 @@ También mira en la lista qué fics están sin terminar y chequea si hubo update
 (en caso de que sí, la descarga) -> hace lo de fics_incompletas_update
 """
 
-import csv as csv
-import codecs
-import string
-import os as os
-import AO3  # https://github.com/ArmindoFlores/ao3_api
-from clear_cache import clear as clear_cache
-
-from fics_incompletas_update import descargar_incompletas
-from time import sleep
 
 clear_cache(
     dir="."
@@ -33,7 +29,7 @@ clear_cache(
 # import gspread
 # from oauth2client.service_account import ServiceAccountCredentials
 
-session = AO3.Session("liightmyfire", "redondos93")
+session = AO3.Session(creds["User"], creds["Password"])
 print("abrió la sesión")
 mfl = session.get_marked_for_later()  # tarda un ratito pero no tanto. No los carga
 print("abrió la lista de mfl")
@@ -77,6 +73,8 @@ pairings = {
     "Millions Knives/Nicholas D. Wolfwood": "KnivesWood",
     "Mitsurugi Reiji | Miles Edgeworth/Naruhodou Ryuuichi | Phoenix Wright": "NaruMitsu",
     "Mitsurugi Reiji/Naruhodou Ryuuichi | Miles Edgeworth/Phoenix Wright": "NaruMitsu",
+    "Monkey D. Luffy/Roronoa Zoro": "ZoLu",
+    "Lán Zhàn | Lán Wàngjī/Wèi Yīng | Wèi Wúxiàn": "WanXian",
 }
 
 
@@ -84,6 +82,7 @@ relevant_tags = [
     "AU",
     "Alternate Universe",
     "Alternate Universe - Soulmates",
+    "Alternate Universe - Modern Setting",
     "Alternate Universe - College/University",
     "Alternate Universe - Medieval",
     "Alternate Universe - Flower Shop",
@@ -109,6 +108,7 @@ relevant_tags = [
     "Post-Canon",
     "Post-Time Skip",
     "Canon Compliant",
+    "Canon Universe",
     "Genderswap",
     "Rule 63",
     "Dead Dove: Do Not Eat",
@@ -116,6 +116,7 @@ relevant_tags = [
     "Getting Together",
     "Fluff",
     "Angst",
+    "Kissing",
     "Fluff and Angst",
     "Heavy Angst",
     "Angst with a Happy Ending",
@@ -160,10 +161,10 @@ relevant_tags_dict = {
     "Alternate Universe - Medieval": "Medieval AU",
     "Alternate Universe - Flower Shop": "Flower Shop AU",
     "Alternate Universe - Coffee Shop": "Coffee Shop AU",
-    "Alternate Universe - Modern Setting": "Modern AU",
     "Alternate Universe - Werewolf": "Werewolf AU",
     "Alternate Universe - Vampire": "Vampire AU",
     "Alternate Universe - Pirates": "Pirate AU",
+    "Alternate Universe - Modern Setting": "Modern AU",
     "Time Travel": "Time Loop",
     "Friends to Lovers": "FtL",
     "Rivals to Lovers": "RtL",
@@ -217,7 +218,7 @@ def taglist(ww):
 
 def serie(ww):
     serie = ww.series
-    if type(serie) == list and len(serie) > 0:
+    if type(serie) is list and len(serie) > 0:
         ser = str(serie[0])
         for i in ["Series", "[", "]", "<", ">"]:
             ser = borrar(ser, i)
@@ -228,7 +229,7 @@ def serie(ww):
 
 def ships(ww):
     ship = ww.relationships
-    if type(ship) == list and len(ship) > 0:
+    if type(ship) is list and len(ship) > 0:
         ship = ship[0]
     elif len(ship) == 0:
         ship = "ninguno"
@@ -278,30 +279,49 @@ def metadata(ww):
     )
 
 
+def assign_path(fandom):
+    if "Haikyuu" in fandom:
+        path = "../../fics/hq/"
+    elif "Jujutsu" in fandom:
+        path = "../../fics/jjk/"
+    elif "Trigun" in fandom:
+        path = "../../fics/trigun/"
+    elif "Attorney" in fandom:
+        path = "../../fics/aa/"
+    elif "One Piece" in fandom:
+        path = "../../fics/op/"
+    elif "Shingeki" in fandom:
+        path = "../../fics/snk/"
+    else:
+        path = "../../fics/"
+    return path
+
+
 header = ["Title", "Author", "pairing", "WC", "Rating", "Summary", "url"]
-path = "../../hq/fics/"
+csv_path = "../../fics/"
 
 # El dict para eliminar todos los caracteres especiales del título
 delete_dict = {sp_character: "" for sp_character in string.punctuation}
 table = str.maketrans(delete_dict)
 
-lst = [fic for fic in os.listdir(path)]
-titles = [
-    titulo[:-5].translate(table) for titulo in lst
-]  # los títulos sin caracteres especiales
+
+def search_in_downloads(path, table):
+    lst = [fic for fic in os.listdir(path)]
+    titles = [
+        titulo[:-5].translate(table) for titulo in lst
+    ]  # los títulos sin caracteres especiales
+    return titles
 
 
 def writefile(filename, ww, tit, md):
+    path = assign_path(md[-4])
+    titles = search_in_downloads(path, table)
     with codecs.open(filename, "a", "utf-8") as f:
         archivo = csv.writer(f)
         if tit not in titles:  # lo descarga sólo si no lo tengo ya bajado
             archivo.writerow(md)
             # si quiero además descargarlos:
-            chap = md[-2]
-            if chap > 1:
-                ww.download_to_file(path + tit + ".mobi", filetype="MOBI")
-            else:
-                ww.download_to_file(path + tit + ".epub", filetype="epub")
+            ww.download_to_file(path + tit + ".epub", filetype="epub")
 
 
 def downloader(numero):
@@ -314,18 +334,24 @@ def downloader(numero):
         ww = mfl[i]
         md = metadata(ww)
         tit = md[0]
+        path = assign_path(md[-4])
         tit = tit.translate(table)  # elimina los caracteres especiales
         if (
             md[10] == "Trigun Stampede (Anime 2023)"
             or md[10] == "Trigun (Anime & Manga 1995-2008)"
         ):
-            writefile(path + "trigun_mfl.csv", ww, tit, md)
+            writefile(csv_path + "trigun_mfl.csv", ww, tit, md)
         else:
-            writefile(path + "fics en mfl.csv", ww, tit, md)
+            writefile(csv_path + "fics en mfl.csv", ww, tit, md)
+        if i % 5 == 0 and i != 0:
+            sleep(120)  # cada cinco descansa
 
 
-downloader(15)
-sleep(60)
-descargar_incompletas("trigun_mfl.csv")
-sleep(60)
-descargar_incompletas("fics en mfl.csv")
+downloader(10)
+print("download listo\n")
+sleep(120)
+# descargar_incompletas("trigun_mfl.csv")
+# print("incompletas trigun listo\n")
+# sleep(120)
+# descargar_incompletas("fics en mfl.csv")
+# print("incompletas etc listo\n")
