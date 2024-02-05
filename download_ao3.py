@@ -5,6 +5,7 @@ import os as os
 import AO3  # https://github.com/ArmindoFlores/ao3_api
 from clear_cache import clear as clear_cache
 from creds import creds
+from gdocs import importar_gdocs, next_available_row
 
 from fics_incompletas_update import descargar_incompletas
 from time import sleep
@@ -74,6 +75,8 @@ pairings = {
     "Mitsurugi Reiji | Miles Edgeworth/Naruhodou Ryuuichi | Phoenix Wright": "NaruMitsu",
     "Mitsurugi Reiji/Naruhodou Ryuuichi | Miles Edgeworth/Phoenix Wright": "NaruMitsu",
     "Monkey D. Luffy/Roronoa Zoro": "ZoLu",
+    "Roronoa Zoro/Vinsmoke Sanji": "ZoSan",
+    "Portgas D. Ace/Vinsmoke Sanji": "AceSan",
     "Lán Zhàn | Lán Wàngjī/Wèi Yīng | Wèi Wúxiàn": "WanXian",
 }
 
@@ -197,6 +200,8 @@ relevant_tags_dict = {
     "Fake/Pretend Relationship": "Fake Dating",
 }
 
+hq, trigun, op, aa, sk8, jjk, snk, otros = importar_gdocs()
+
 
 def borrar(string, palabra):
     s = string.replace(palabra, "")
@@ -281,20 +286,29 @@ def metadata(ww):
 
 def assign_path(fandom):
     if "Haikyuu" in fandom:
-        path = "../../fics/hq/"
+        path = f"../../fics/hq/"
+        hoja = hq
     elif "Jujutsu" in fandom:
-        path = "../../fics/jjk/"
+        hoja = jjk
+        path = f"../../fics/jjk/"
     elif "Trigun" in fandom:
-        path = "../../fics/trigun/"
+        hoja = trigun
+        path = f"../../fics/trigun/"
     elif "Attorney" in fandom:
-        path = "../../fics/aa/"
+        hoja = aa
+        path = f"../../fics/aa/"
     elif "One Piece" in fandom:
-        path = "../../fics/op/"
+        hoja = op
+        path = f"../../fics/op/"
     elif "Shingeki" in fandom:
-        path = "../../fics/snk/"
+        hoja = snk
+        path = f"../../fics/snk/"
     else:
-        path = "../../fics/"
-    return path
+        hoja = otros
+        path = f"../../fics/otros/"
+
+    fila = next_available_row(hoja)
+    return path, hoja, fila
 
 
 header = ["Title", "Author", "pairing", "WC", "Rating", "Summary", "url"]
@@ -314,7 +328,7 @@ def search_in_downloads(path, table):
 
 
 def writefile(filename, ww, tit, md):
-    path = assign_path(md[-4])
+    path, hoja, fila = assign_path(md[-4])
     titles = search_in_downloads(path, table)
     with codecs.open(filename, "a", "utf-8") as f:
         archivo = csv.writer(f)
@@ -322,6 +336,21 @@ def writefile(filename, ww, tit, md):
             archivo.writerow(md)
             # si quiero además descargarlos:
             ww.download_to_file(path + tit + ".epub", filetype="epub")
+
+
+def update_hoja(hoja, fila, md):
+    if len(md[8]) > 0:
+        hoja.update_acell(f"I{fila}", md[8])
+
+    cell_AH = hoja.range(f"A{fila}:H{fila}")
+    for i, cell in enumerate(cell_AH):
+        cell.value = md[i]
+    hoja.update_cells(cell_AH)
+
+    cell_JN = hoja.range(f"J{fila}:N{fila}")
+    for i, cell in enumerate(cell_JN):
+        cell.value = md[9+i]
+    hoja.update_cells(cell_JN)
 
 
 def downloader(numero):
@@ -334,22 +363,18 @@ def downloader(numero):
         ww = mfl[i]
         md = metadata(ww)
         tit = md[0]
-        path = assign_path(md[-4])
+        path, hoja, fila = assign_path(md[-4])
         tit = tit.translate(table)  # elimina los caracteres especiales
-        if (
-            md[10] == "Trigun Stampede (Anime 2023)"
-            or md[10] == "Trigun (Anime & Manga 1995-2008)"
-        ):
-            writefile(csv_path + "trigun_mfl.csv", ww, tit, md)
-        else:
-            writefile(csv_path + "fics en mfl.csv", ww, tit, md)
+
+        writefile(csv_path + "fics en mfl.csv", ww, tit, md)  # acá descarga
+        # update_hoja(hoja, fila, md)
         if i % 5 == 0 and i != 0:
             sleep(120)  # cada cinco descansa
 
 
-downloader(10)
+downloader(5)
 print("download listo\n")
-sleep(120)
+# sleep(120)
 # descargar_incompletas("trigun_mfl.csv")
 # print("incompletas trigun listo\n")
 # sleep(120)
